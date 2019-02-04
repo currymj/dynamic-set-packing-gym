@@ -1,2 +1,2 @@
-from gym_dynamic_set_packing.envs.dynamic_set_packing_env import DynamicSetPackingEnv
+from gym_dynamic_set_packing.envs.dynamic_set_packing_env import DynamicSetPackingBinaryEnv, SillyTestEnv
 

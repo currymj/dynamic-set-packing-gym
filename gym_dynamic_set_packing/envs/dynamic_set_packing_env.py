@@ -40,11 +40,14 @@ class DynamicSetPackingBinaryEnv(gym.Env):
 
     ## the following MUST be implemented in the child
     def _run_match(self, match):
-        """Must be overridden by a child. Takes the output of the match solver and uses it to update the state, possibly with some probability of failure. Returns the reward from the match."""
+        """Must be overridden by a child. Takes the output of the match solver
+        and uses it to update the state, possibly with some probability of
+        failure per match type. Returns the reward from the match."""
+
         raise NotImplementedError
 
     def _perform_match(self, state):
-        "Takes a state and finds a match to return. Does not actually modify state."
+        "Takes a state and finds a match to return. Does not actually modify state. Must be provided by child."
         raise NotImplementedError
 
     def reset(self):
@@ -63,3 +66,31 @@ class DynamicSetPackingBinaryEnv(gym.Env):
     def seed(self, seed):
         random.seed(seed)
         np.random.seed(seed)
+
+class SillyTestEnv(DynamicSetPackingBinaryEnv):
+    "A very silly test environment. More to test whether the code runs than anything realistic."
+
+    def __init__(self):
+        super(SillyTestEnv, self).__init__(16)
+
+    ## required overrides
+    def reset(self):
+        self.state = np.ones(self.state_dim)
+
+    def _perform_match(self, state):
+        # just return the whole state -- everything always gets matched
+        return self.state
+
+    def _run_match(self, match):
+        match_cardinality = np.sum(match)
+        self.state = self.state - match
+        # self.state should always be 0 here
+        return match_cardinality
+
+    def _arrive_and_depart(self):
+        # arrive
+        for i in range(len(self.state)):
+            if np.random.rand() > 0.5:
+                self.state[i] += 1
+            if np.random.rand() > 0.3:
+                self.state[i] -= 2

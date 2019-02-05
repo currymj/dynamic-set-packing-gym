@@ -14,7 +14,7 @@ if __name__ == '__main__':
     env = gym.make('DynamicSetPacking-silly-v0')
     agent = GreedyMatchAgent()
 
-    episode_count = 100
+    episode_count = 10
     reward = 0.0
     done = False
     max_steps = 100
@@ -24,6 +24,6 @@ if __name__ == '__main__':
         while i in range(max_steps):
             action = agent.act(ob, reward, done)
             ob, reward, done, _ = env.step(action)
-            print(env.render())
+            print('reward: {}, new state: {}'.format(reward, env.render()))
 
 env.close()

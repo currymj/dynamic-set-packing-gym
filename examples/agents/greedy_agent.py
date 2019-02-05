@@ -3,7 +3,7 @@ from gym import spaces
 import gym_dynamic_set_packing
 
 class GreedyMatchAgent:
-
+    "A simple agent for the 0/1 problem that always matches."
     def __init__(self):
         self.action_space = spaces.Discrete(2)
 

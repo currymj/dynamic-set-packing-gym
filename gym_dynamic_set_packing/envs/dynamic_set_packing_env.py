@@ -93,4 +93,5 @@ class SillyTestEnv(DynamicSetPackingBinaryEnv):
             if np.random.rand() > 0.5:
                 self.state[i] += 1
             if np.random.rand() > 0.3:
-                self.state[i] -= 2
+                if self.state[i] > 0:
+                    self.state[i] -= 1

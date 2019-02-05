@@ -10,7 +10,7 @@ class DynamicSetPackingBinaryEnv(gym.Env):
     """
     def __init__(self, state_dim):
         self.state_dim = state_dim
-        self.action_space = spaces.Discrete(1)
+        self.action_space = spaces.Discrete(2)
         self.observation_space = spaces.Box(
                 low=np.zeros(state_dim),
                 high=np.full(state_dim, np.inf))

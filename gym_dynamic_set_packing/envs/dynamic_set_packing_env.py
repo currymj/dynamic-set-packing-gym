@@ -63,9 +63,9 @@ class DynamicSetPackingBinaryEnv(gym.Env):
         "Just prints out the current state vector. May be overriden by child if desired."
         return self.state
 
-    def seed(self, seed):
-        random.seed(seed)
-        np.random.seed(seed)
+    def seed(self):
+        random.seed(1)
+        np.random.seed(1)
 
 class SillyTestEnv(DynamicSetPackingBinaryEnv):
     "A very silly test environment. More to test whether the code runs than anything realistic."

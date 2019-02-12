@@ -1,1 +1,1 @@
-from gym_dynamic_set_packing.matchers import GurobiMatcher
+from gym_dynamic_set_packing.matchers.matcher import GurobiMatcher

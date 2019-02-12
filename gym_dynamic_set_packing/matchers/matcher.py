@@ -1,12 +1,40 @@
 import gurobipy as gr
 import numpy as np
 
+# note to self: matchers take in a set of counts
+# output should be a coefficient for each of the valid sets
+# the user of the matcher should sum these up, since they
+# may want to do some randomization to simulate match failures
+
 class Matcher:
-    def __init__(self):
-        raise NotImplementedError
+    def __init__(self, valid_sets):
+        #Valid sets should be a (dense?) numpy matrix.
+        # we think in terms of column vectors
+        self.valid_sets = valid_sets
 
     def match(self, state):
         raise NotImplementedError
+
+class GurobiMatcher(Matcher):
+    def __init__(self, valid_sets):
+        super(GurobiMatcher, self).__init__(valid_sets)
+
+    def match(self, state):
+        "Assume state is a 1d numpy vector of counts per type"
+        n_types = state.shape[0]
+        n_sets = len(self.valid_sets)
+        
+        # type vectors must be same size
+        assert(n_types == self.valid_sets.shape[0])
+        m = gr.Model("match")
+        x_vars = [m.addVar(vtype=gr.GRB.INTEGER, lb=0, name='x_{}'.format(i)) for i in range(n_sets)]
+        row_sums = [gr.LinExpr(self.valid_sets[i,:], x_vars) for i in range(n_types)]
+        for i, row_sum in enumerate(row_sums):
+            m.addConstr(row_sum <= pool[i])
+        m.setObjective(gr.quicksum(row_sums), gr.GRB.MAXIMIZE)
+        m.optimize()
+        solns = [x.x for x in x_vars]
+        return solns
 
 class WeightedMatcher:
 

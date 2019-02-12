@@ -1,3 +1,4 @@
+from . import GurobiMatcher
 import numpy as np
 
 def test_simple_matcher():
@@ -13,4 +14,5 @@ def test_simple_matcher():
     pool[4] = 8
     matcher = GurobiMatcher(feasible_sets)
     result = matcher.match(pool)
+    assert result == [8.0, 2.0, 8.0]
 

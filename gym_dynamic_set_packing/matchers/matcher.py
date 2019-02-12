@@ -22,7 +22,7 @@ class GurobiMatcher(Matcher):
     def match(self, state):
         "Assume state is a 1d numpy vector of counts per type"
         n_types = state.shape[0]
-        n_sets = len(self.valid_sets)
+        n_sets = self.valid_sets.shape[1]
         
         # type vectors must be same size
         assert(n_types == self.valid_sets.shape[0])
@@ -30,7 +30,7 @@ class GurobiMatcher(Matcher):
         x_vars = [m.addVar(vtype=gr.GRB.INTEGER, lb=0, name='x_{}'.format(i)) for i in range(n_sets)]
         row_sums = [gr.LinExpr(self.valid_sets[i,:], x_vars) for i in range(n_types)]
         for i, row_sum in enumerate(row_sums):
-            m.addConstr(row_sum <= pool[i])
+            m.addConstr(row_sum <= state[i])
         m.setObjective(gr.quicksum(row_sums), gr.GRB.MAXIMIZE)
         m.optimize()
         solns = [x.x for x in x_vars]

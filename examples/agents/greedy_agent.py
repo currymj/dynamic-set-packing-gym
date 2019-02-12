@@ -11,7 +11,7 @@ class GreedyMatchAgent:
         return 1
 
 if __name__ == '__main__':
-    env = gym.make('DynamicSetPacking-silly-v0')
+    env = gym.make('DynamicSetPacking-gurobitest-v0')
     agent = GreedyMatchAgent()
 
     episode_count = 10

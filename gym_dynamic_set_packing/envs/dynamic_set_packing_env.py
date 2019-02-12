@@ -2,6 +2,7 @@ import gym
 from gym import spaces
 import numpy as np
 import random
+from ..matchers import GurobiMatcher
 
 class DynamicSetPackingBinaryEnv(gym.Env):
 
@@ -66,6 +67,42 @@ class DynamicSetPackingBinaryEnv(gym.Env):
     def seed(self):
         random.seed(1)
         np.random.seed(1)
+
+class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
+    "A simple test environment that uses Gurobi to find a maximal match."
+    def __init__(self):
+        super(GurobiBinaryEnv, self).__init__(5) # has to be hard coded :(
+        feasible_sets = np.zeros((5, 3))
+        feasible_sets[0:2, 0] = 1.0
+        feasible_sets[1:4, 1] = 1.0
+        feasible_sets[3:5, 2] = 1.0 
+        self.matcher = GurobiMatcher(feasible_sets)
+
+    ## required overrides
+    def reset(self):
+        self.state = 10*np.ones(self.state_dim)
+        self.state[0] = 8
+        self.state[4] = 8
+
+    def _perform_match(self, state):
+        return self.matcher.match(state)
+
+    def _run_match(self, match):
+        # match is an array of weights for self.matcher.valid_sets
+        total_match = self.matcher.valid_sets @ match
+        match_cardinality = np.sum(total_match)
+        self.state = self.state - total_match
+        return match_cardinality
+
+    # optional override
+    def _arrive_and_depart(self):
+        # arrive
+        for i in range(len(self.state)):
+            if np.random.rand() > 0.5:
+                self.state[i] += 1
+            if np.random.rand() > 0.3:
+                if self.state[i] > 0:
+                    self.state[i] -= 1
 
 class SillyTestEnv(DynamicSetPackingBinaryEnv):
     "A very silly test environment. More to test whether the code runs than anything realistic."

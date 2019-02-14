@@ -16,8 +16,9 @@ class Matcher:
         raise NotImplementedError
 
 class GurobiMatcher(Matcher):
-    def __init__(self, valid_sets):
+    def __init__(self, valid_sets, show_output=False):
         super(GurobiMatcher, self).__init__(valid_sets)
+        self.show_output = show_output
 
     def match(self, state):
         "Assume state is a 1d numpy vector of counts per type"
@@ -27,6 +28,7 @@ class GurobiMatcher(Matcher):
         # type vectors must be same size
         assert(n_types == self.valid_sets.shape[0])
         m = gr.Model("match")
+        m.setParam('OutputFlag', self.show_output)
         x_vars = [m.addVar(vtype=gr.GRB.INTEGER, lb=0, name='x_{}'.format(i)) for i in range(n_sets)]
         row_sums = [gr.LinExpr(self.valid_sets[i,:], x_vars) for i in range(n_types)]
         for i, row_sum in enumerate(row_sums):

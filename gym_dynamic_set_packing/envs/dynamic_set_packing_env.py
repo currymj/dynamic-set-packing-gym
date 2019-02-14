@@ -68,14 +68,28 @@ class DynamicSetPackingBinaryEnv(gym.Env):
         random.seed(1)
         np.random.seed(1)
 
+
 class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
     "A simple test environment that uses Gurobi to find a maximal match."
     def __init__(self):
-        super(GurobiBinaryEnv, self).__init__(5) # has to be hard coded :(
-        feasible_sets = np.zeros((5, 3))
-        feasible_sets[0:2, 0] = 1.0
-        feasible_sets[1:4, 1] = 1.0
-        feasible_sets[3:5, 2] = 1.0 
+        super(GurobiBinaryEnv, self).__init__(16) # has to be hard coded :(
+        feasible_sets = np.array([
+            [0., 0., 0., 1., 0., 0., 0., 0., 0., 0.],
+            [0., 0., 0., 0., 0., 0., 0., 1., 0., 0.],
+            [1., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+            [0., 0., 0., 1., 0., 0., 0., 0., 0., 0.],
+            [0., 0., 1., 0., 0., 1., 0., 0., 0., 0.],
+            [1., 0., 0., 0., 1., 0., 0., 0., 0., 0.],
+            [0., 0., 0., 1., 0., 0., 0., 0., 0., 0.],
+            [0., 0., 0., 0., 0., 0., 1., 0., 0., 0.],
+            [0., 0., 0., 0., 1., 1., 0., 1., 0., 0.],
+            [0., 1., 0., 0., 0., 0., 0., 0., 0., 0.],
+            [0., 0., 1., 0., 0., 1., 0., 0., 0., 1.],
+            [0., 0., 0., 0., 1., 0., 1., 1., 0., 0.],
+            [0., 1., 0., 0., 0., 0., 0., 0., 0., 0.],
+            [0., 0., 0., 0., 0., 0., 0., 0., 1., 1.],
+            [1., 1., 0., 0., 0., 0., 0., 0., 0., 1.],
+            [0., 0., 1., 0., 0., 0., 1., 0., 0., 0.]])
         self.matcher = GurobiMatcher(feasible_sets)
 
     ## required overrides

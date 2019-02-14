@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     for i in range(episode_count):
         ob = env.reset()
-        while i in range(max_steps):
+        for i in range(max_steps):
             action = agent.act(ob, reward, done)
             ob, reward, done, _ = env.step(action)
             print('action taken: {}, reward: {}, new state: {}'.format(action, reward, env.render()))

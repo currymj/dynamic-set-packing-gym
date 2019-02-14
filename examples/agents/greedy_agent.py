@@ -17,11 +17,11 @@ if __name__ == '__main__':
     episode_count = 10
     reward = 0.0
     done = False
-    max_steps = 100
+    max_steps = 10
 
     for i in range(episode_count):
         ob = env.reset()
-        while i in range(max_steps):
+        for i in range(max_steps):
             action = agent.act(ob, reward, done)
             ob, reward, done, _ = env.step(action)
             print('reward: {}, new state: {}'.format(reward, env.render()))

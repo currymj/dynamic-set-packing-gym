@@ -1,6 +1,7 @@
 import gym
 from gym import spaces
 import gym_dynamic_set_packing
+import time
 
 class GreedyMatchAgent:
     "A simple agent for the 0/1 problem that always matches."
@@ -19,6 +20,7 @@ if __name__ == '__main__':
     done = False
     max_steps = 100
 
+    start_time = time.time()
     for i in range(episode_count):
         print('episode {}'.format(i))
         ob = env.reset()
@@ -29,5 +31,7 @@ if __name__ == '__main__':
             total_reward += reward
             print('reward: {}, new state: {}'.format(reward, env.render()))
         print('total episode reward: {}'.format(total_reward))
+    end_time = time.time()
+    print('time taken: {} s'.format(end_time - start_time))
 
 env.close()

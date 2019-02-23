@@ -3,6 +3,8 @@ from gym import spaces
 import numpy as np
 import random
 from ..matchers import GurobiMatcher
+import os
+import csv
 
 class DynamicSetPackingBinaryEnv(gym.Env):
 
@@ -73,23 +75,8 @@ class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
     "A simple test environment that uses Gurobi to find a maximal match."
     def __init__(self):
         super(GurobiBinaryEnv, self).__init__(16) # has to be hard coded :(
-        feasible_sets = np.array([
-            [0., 0., 0., 1., 0., 0., 0., 0., 0., 0.],
-            [0., 0., 0., 0., 0., 0., 0., 1., 0., 0.],
-            [1., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
-            [0., 0., 0., 1., 0., 0., 0., 0., 0., 0.],
-            [0., 0., 1., 0., 0., 1., 0., 0., 0., 0.],
-            [1., 0., 0., 0., 1., 0., 0., 0., 0., 0.],
-            [0., 0., 0., 1., 0., 0., 0., 0., 0., 0.],
-            [0., 0., 0., 0., 0., 0., 1., 0., 0., 0.],
-            [0., 0., 0., 0., 1., 1., 0., 1., 0., 0.],
-            [0., 1., 0., 0., 0., 0., 0., 0., 0., 0.],
-            [0., 0., 1., 0., 0., 1., 0., 0., 0., 1.],
-            [0., 0., 0., 0., 1., 0., 1., 1., 0., 0.],
-            [0., 1., 0., 0., 0., 0., 0., 0., 0., 0.],
-            [0., 0., 0., 0., 0., 0., 0., 0., 1., 1.],
-            [1., 1., 0., 0., 0., 0., 0., 0., 0., 1.],
-            [0., 0., 1., 0., 0., 0., 1., 0., 0., 0.]])
+        filename = os.path.join(os.path.dirname(__file__), 'bloodTypeVectors.csv')
+        feasible_sets = np.genfromtxt(filename,skip_header=1, delimiter=',').transpose()
         self.matcher = GurobiMatcher(feasible_sets)
 
     ## required overrides

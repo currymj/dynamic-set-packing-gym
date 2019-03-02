@@ -15,6 +15,13 @@ class Matcher:
     def match(self, state):
         raise NotImplementedError
 
+class PyomoMatcher(Matcher):
+    def __init__(self, valid_sets):
+        super(PyomoMatcher, self).__init__(valid_sets)
+
+
+    # implement match!
+    # implement lp solver!
 class GurobiMatcher(Matcher):
     def __init__(self, valid_sets, show_output=False):
         super(GurobiMatcher, self).__init__(valid_sets)

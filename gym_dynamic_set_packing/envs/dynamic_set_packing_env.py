@@ -81,7 +81,7 @@ class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
 
     ## required overrides
     def reset(self):
-        self.state = 10*np.ones(self.state_dim)
+        self.state = 10*np.ones(self.state_dim, dtype=np.float32)
         self.state[0] = 8
         self.state[4] = 8
         return self.state
@@ -93,7 +93,7 @@ class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
         # match is an array of weights for self.matcher.valid_sets
         total_match = self.matcher.valid_sets @ match
         match_cardinality = np.sum(total_match)
-        self.state = self.state - total_match
+        self.state = self.state - (total_match.astype('float32'))
         return match_cardinality
 
     # optional override
@@ -114,7 +114,7 @@ class SillyTestEnv(DynamicSetPackingBinaryEnv):
 
     ## required overrides
     def reset(self):
-        self.state = np.ones(self.state_dim)
+        self.state = np.ones(self.state_dim, dtype=np.float32)
         return self.state
 
     def _perform_match(self, state):
@@ -123,7 +123,7 @@ class SillyTestEnv(DynamicSetPackingBinaryEnv):
 
     def _run_match(self, match):
         match_cardinality = np.sum(match)
-        self.state = self.state - match
+        self.state = self.state - match.astype('float32')
         # self.state should always be 0 here
         return match_cardinality
 

@@ -84,6 +84,7 @@ class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
         self.state = 10*np.ones(self.state_dim)
         self.state[0] = 8
         self.state[4] = 8
+        return self.state
 
     def _perform_match(self, state):
         return self.matcher.match(state)
@@ -114,6 +115,7 @@ class SillyTestEnv(DynamicSetPackingBinaryEnv):
     ## required overrides
     def reset(self):
         self.state = np.ones(self.state_dim)
+        return self.state
 
     def _perform_match(self, state):
         # just return the whole state -- everything always gets matched

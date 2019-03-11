@@ -81,9 +81,9 @@ class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
 
     ## required overrides
     def reset(self):
-        self.state = 10*np.ones(self.state_dim, dtype=np.float32)
-        self.state[0] = 8
-        self.state[4] = 8
+        self.state = np.zeros(self.state_dim, dtype=np.float32)
+        #self.state[0] = 8
+        #self.state[4] = 8
         return self.state
 
     def _perform_match(self, state):

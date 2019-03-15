@@ -1,4 +1,17 @@
-# Module
+# Setup
+
+It is recommended to use anaconda and define a new environment. In that environment,
+
+    $ python setup.py develop # installs repo in develop mode and some deps
+
+Also get a Gurobi license by [signing up for an academic account](http://www.gurobi.com/academia/for-universities<Paste>) (you will need to be [on the CS VPN](https://helpdesk.cs.umd.edu/faq/connecting/vpn/) to do this) and then install Gurobi's python package by:
+
+    $ conda config --add channels http://conda.anaconda.org/gurobi
+    $ conda install gurobi
+
+Finally you will probably want to install PyTorch if you haven't by following the instructions on pytorch.org for your system.
+
+# Module structure
 
 The main module just defines the environments, without reference to agents. So the main dependencies are OpenAI Gym, and currently Gurobi (to perform maximal matches).
 

@@ -1,9 +1,10 @@
+# Module
 
-This is an OpenAI Gym environment for dynamic set packing. 
+The main module just defines the environments, without reference to agents. So the main dependencies are OpenAI Gym, and currently Gurobi (to perform maximal matches).
 
-# Environments
+## Environments
 
-We have a general abstract class, `DynamicSetPackingBinaryEnv` (will have a different one for real-valued actions). It defines a step method. Each of the functions called should be overridden by concrete classes, to define the behavior.
+We have a general abstract class, `DynamicSetPackingBinaryEnv` (will have a different one for real-valued actions). It defines a step method. Each of the other methods called should be overridden by concrete classes to define the dynamics of the environment.
 
         def step(self, action):
             assert self.action_space.contains(action)
@@ -33,6 +34,14 @@ Currently, two concrete environments are defined (OpenAI Gym requires that each 
 	
 	An environment that has 16 types, and about 4000 feasible sets. This corresponds to donor-patient pairs whose compatibility is restricted only by blood type. Needs to be made more realistic (for example, better arrival/departure probabilities).
 
-# Matchers
+## Matchers
 
 The `matchers` module defines classes that perform a maximal match. Currently just define a GurobiMatcher that knows the feasible sets, takes in a state and outputs a maximal match.
+
+# Examples
+
+Actual agents and training loops are defined separately inside the examples
+directory. The only reason for this is to avoid having PyTorch, TensorFlow, or
+other heavy libraries as dependencies of the environment itself.
+
+For the currently working example, look at `policy_gradient_pytorch.ipynb`. 

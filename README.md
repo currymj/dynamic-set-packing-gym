@@ -4,7 +4,7 @@ It is recommended to use anaconda and define a new environment. In that environm
 
     $ python setup.py develop # installs repo in develop mode and some deps
 
-Also get a Gurobi license by [signing up for an academic account](http://www.gurobi.com/academia/for-universities<Paste>) (you will need to be [on the CS VPN](https://helpdesk.cs.umd.edu/faq/connecting/vpn/) to do this) and then install Gurobi's python package by:
+Also get a Gurobi license by [signing up for an academic account](http://www.gurobi.com/academia/for-universities) (you will need to be [on the CS VPN](https://helpdesk.cs.umd.edu/faq/connecting/vpn/) to do this) and then install Gurobi's python package by:
 
     $ conda config --add channels http://conda.anaconda.org/gurobi
     $ conda install gurobi

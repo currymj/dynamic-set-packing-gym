@@ -1,33 +1,60 @@
-# Introduction
+# Setup
 
-This will be an OpenAI Gym environment for dynamic set packing. The state will consist of a vector of counts of the elements of different types. Elements arrive and depart over time. In addition, a match can take place; when it does, all elements in the match are removed and the agent receives a reward equal to the cardinality of the match.
+It is recommended to use anaconda and define a new environment. In that environment,
 
+    $ python setup.py develop # installs repo in develop mode and some deps
 
-# 0/1 Action Space
+Also get a Gurobi license by [signing up for an academic account](http://www.gurobi.com/academia/for-universities) (you will need to be [on the CS VPN](https://helpdesk.cs.umd.edu/faq/connecting/vpn/) to do this) and then install Gurobi's python package by:
 
-In this situation, the goal of the agent is to decide whether to match or wait for more elements to arrive/depart. If it outputs "match", then a match takes place and it receives a reward. Otherwise, the state space evolves normally.
+    $ conda config --add channels http://conda.anaconda.org/gurobi
+    $ conda install gurobi
 
-# Real-valued action space
+Finally you will probably want to install PyTorch if you haven't by following the instructions on pytorch.org for your system.
 
-In this situation, the agent's actions consist of a real-valued vector of the same size as the state space. Essentially, the vector is a weight for each type, specifying how strongly it wants that type to be matched. This vector is passed into the matcher.
+# Module structure
 
-# Matcher
+The main module just defines the environments, without reference to agents. So the main dependencies are OpenAI Gym, and currently Gurobi (to perform maximal matches).
 
-We represent the state as a vector of types. We can think of each valid component of a match (e.g. each 2-cycle, 3-cycle, etc.) as a vector in the same space, which together can be a basis for representing a match.
+## Environments
 
-The matcher solves some kind of maximal match linear program, possibly taking
-in weights from the agent. Its output perhaps should not just be the match
-itself in terms of counts of each type, but rather the match vector in the
-basis described above. We will convert this to counts of types outside of the solver, allowing for things like simulating failures in specific cycles.
+We have a general abstract class, `DynamicSetPackingBinaryEnv` (will have a different one for real-valued actions). It defines a step method. Each of the other methods called should be overridden by concrete classes to define the dynamics of the environment.
 
-# Agents
+        def step(self, action):
+            assert self.action_space.contains(action)
 
-## Match/don't match
+            reward = 0.0
+            if action == 1:
+                chosen_match = self._perform_match(self.state)
+                reward = self._run_match(chosen_match)
+    
+    
+            # elements arrive and depart
+            self._arrive_and_depart()
+    
+            # do we need these dummy values?
+            info = {'no info': 'no info'}
+            done = False
 
-Obviously the stupidest case is the agent that always matches. We can also take a Q-learning approach, with linear models or deep learning.
+            return self.state, reward, done, info
+	    
+Currently, two concrete environments are defined (OpenAI Gym requires that each environment have a concrete class that takes no constructor arguments; these are registered in the top-level `__init__.py`):
 
-## Real-valued actions
+- `DynamicSetPacking-silly-v0`, class `envs.SillyTestEnv`:
 
-Here, we basically have no choice but to do policy gradient, and just spit out an action.
+	A toy environment.
 
+- `DynamicSetPacking-gurobitest-v0`, class `envs.GurobiBinaryEnv`:
+	
+	An environment that has 16 types, and about 4000 feasible sets. This corresponds to donor-patient pairs whose compatibility is restricted only by blood type. Needs to be made more realistic (for example, better arrival/departure probabilities).
 
+## Matchers
+
+The `matchers` module defines classes that perform a maximal match. Currently just define a GurobiMatcher that knows the feasible sets, takes in a state and outputs a maximal match.
+
+# Examples
+
+Actual agents and training loops are defined separately inside the examples
+directory. The only reason for this is to avoid having PyTorch, TensorFlow, or
+other heavy libraries as dependencies of the environment itself.
+
+For the currently working example, look at `policy_gradient_pytorch.ipynb`. 

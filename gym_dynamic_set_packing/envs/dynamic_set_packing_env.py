@@ -89,7 +89,7 @@ class AdversarialEnv(DynamicSetPackingBinaryEnv):
 
     def _run_match(self, match):
         total_match = self.matcher.valid_sets @ match
-        match_cardinality = np.sum(total_match)
+        match_cardinality = np.sum(total_match * np.array([1.0,1.0,50.0]))
         self.state = self.state - (total_match.astype('float32'))
         return match_cardinality
 
@@ -99,11 +99,11 @@ class AdversarialEnv(DynamicSetPackingBinaryEnv):
             arrivals[0] += 1
         if np.random.rand() > 0.7:
             arrivals[1] += 1
-        if np.random.rand() > 0.7:
+        if np.random.rand() > 0.9:
             arrivals[2] += 1
         if self.state[2] > 0:
             if np.random.rand() > 0.1:
-                self.state[2] -= 1
+                self.state[2] = 0
 
         self.state += arrivals
 

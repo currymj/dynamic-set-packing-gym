@@ -6,6 +6,73 @@ from ..matchers import GurobiMatcher
 import os
 import csv
 
+class DynamicSetPackingTypeWeight(gym.Env):
+    """
+    Abstract class representing a dynamic set packing problem with type
+    weight action space.
+    """
+    def __init__(self, state_dim):
+        self.state_dim = state_dim
+        self.action_space = spaces.Box(
+                low=np.zeros(state_dim),
+                high=np.full(state_dim, np.inf), dtype=np.float32)
+
+        self.observation_space = spaces.Box(
+                low=np.zeros(state_dim),
+                high=np.full(state_dim, np.inf), dtype=np.float32)
+        self.seed()
+
+        self.state = None
+        self.reset()
+
+
+    def step(self, action):
+        assert self.action_space.contains(action)
+
+        reward = 0.0
+        
+        chosen_match = self._perform_match(self.state, action)
+        reward = self._run_match(chosen_match)
+
+
+        # elements arrive and depart
+        self._arrive_and_depart()
+
+        # do we need these dummy values?
+        info = {'no info': 'no info'}
+        done = False
+
+        return self.state, reward, done, info
+
+    ## the following MUST be implemented in the child
+    def _run_match(self, match):
+        """Must be overridden by a child. Takes the output of the match solver
+        and uses it to update the state, possibly with some probability of
+        failure per match type. Returns the reward from the match."""
+
+        raise NotImplementedError
+
+    def _perform_match(self, state):
+        "Takes a state and finds a match to return. Does not actually modify state. Must be provided by child."
+        raise NotImplementedError
+
+    def reset(self):
+        """Initializes the environment. Must be provided by child."""
+        raise NotImplementedError
+
+    ## the following MAY be overridden by a child
+    def _arrive_and_depart(self):
+        "Simualtes arrival and departure of elements. May be overridden by child."
+        pass
+
+    def render(self, mode='human', close=False):
+        "Just prints out the current state vector. May be overriden by child if desired."
+        return self.state
+
+    def seed(self):
+        random.seed(1)
+        np.random.seed(1)
+
 class DynamicSetPackingBinaryEnv(gym.Env):
 
     """

@@ -5,3 +5,4 @@ logger = logging.getLogger(__name__)
 
 register(id='DynamicSetPacking-silly-v0', entry_point='gym_dynamic_set_packing.envs:SillyTestEnv')
 register(id='DynamicSetPacking-gurobitest-v0', entry_point='gym_dynamic_set_packing.envs:GurobiBinaryEnv')
+register(id='DynamicSetPacking-weightedtest-v0', entry_point='gym_dynamic_set_packing.envs:GurobiWeightedEnv')

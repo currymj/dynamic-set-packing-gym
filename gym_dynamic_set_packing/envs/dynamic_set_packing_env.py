@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 import numpy as np
 import random
-from ..matchers import GurobiMatcher
+from ..matchers import GurobiMatcher, GurobiWeightedMatcher
 import os
 import csv
 
@@ -14,7 +14,7 @@ class DynamicSetPackingTypeWeight(gym.Env):
     def __init__(self, state_dim):
         self.state_dim = state_dim
         self.action_space = spaces.Box(
-                low=np.zeros(state_dim),
+                low=np.full(state_dim, -np.inf),
                 high=np.full(state_dim, np.inf), dtype=np.float32)
 
         self.observation_space = spaces.Box(
@@ -52,7 +52,7 @@ class DynamicSetPackingTypeWeight(gym.Env):
 
         raise NotImplementedError
 
-    def _perform_match(self, state):
+    def _perform_match(self, state, action):
         "Takes a state and finds a match to return. Does not actually modify state. Must be provided by child."
         raise NotImplementedError
 
@@ -72,6 +72,41 @@ class DynamicSetPackingTypeWeight(gym.Env):
     def seed(self):
         random.seed(1)
         np.random.seed(1)
+
+class GurobiWeightedEnv(DynamicSetPackingTypeWeight):
+    "A simple test environment that uses Gurobi to find a maximal match."
+    def __init__(self):
+        super(GurobiWeightedEnv, self).__init__(16) # has to be hard coded :(
+        filename = os.path.join(os.path.dirname(__file__), 'bloodTypeVectors.csv')
+        feasible_sets = np.genfromtxt(filename,skip_header=1, delimiter=',').transpose()
+        self.matcher = GurobiWeightedMatcher(feasible_sets)
+
+    ## required overrides
+    def reset(self):
+        self.state = np.zeros(self.state_dim, dtype=np.float32)
+        #self.state[0] = 8
+        #self.state[4] = 8
+        return self.state
+
+    def _perform_match(self, state, action):
+        return self.matcher.match(state, action)
+
+    def _run_match(self, match):
+        # match is an array of weights for self.matcher.valid_sets
+        total_match = self.matcher.valid_sets @ match
+        match_cardinality = np.sum(total_match)
+        self.state = self.state - (total_match.astype('float32'))
+        return match_cardinality
+
+    # optional override
+    def _arrive_and_depart(self):
+        # arrive
+        for i in range(len(self.state)):
+            if np.random.rand() > 0.5:
+                self.state[i] += 1
+            if np.random.rand() > 0.3:
+                if self.state[i] > 0:
+                    self.state[i] -= 1
 
 class DynamicSetPackingBinaryEnv(gym.Env):
 

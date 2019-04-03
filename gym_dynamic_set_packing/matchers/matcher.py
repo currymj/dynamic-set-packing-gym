@@ -52,7 +52,7 @@ class GurobiMatcher(BinaryMatcher):
 
 class GurobiWeightedMatcher(WeightedMatcher):
     def __init__(self, valid_sets, show_output=False):
-        super(GurobiMatcher, self).__init__(valid_sets)
+        super(GurobiWeightedMatcher, self).__init__(valid_sets)
         self.show_output = show_output
         self.n_types = self.valid_sets.shape[0]
         self.n_sets = self.valid_sets.shape[1]
@@ -72,7 +72,7 @@ class GurobiWeightedMatcher(WeightedMatcher):
             constr = self.m.getConstrByName('rowsum_{}'.format(i))
             constr.setAttr(gr.GRB.Attr.RHS, state[i])
         
-        self.m.setObjective(gr.quicksum(row_sum[i] * action[i] for i in range(len(self.n_types))), gr.GRB.MAXIMIZE)
+        self.m.setObjective(gr.quicksum(self.row_sums[i] * action[i] for i in range(self.n_types)), gr.GRB.MAXIMIZE)
         self.m.optimize()
         solns = [x.x for x in self.x_vars]
         return solns

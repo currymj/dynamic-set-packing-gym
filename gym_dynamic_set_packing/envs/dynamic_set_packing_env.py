@@ -72,15 +72,19 @@ class DynamicSetPackingBinaryEnv(gym.Env):
 
 class AdversarialEnv(DynamicSetPackingBinaryEnv):
     def __init__(self):
-        super(AdversarialEnv, self).__init__(3)
+        super(AdversarialEnv, self).__init__(5)
         feasible_sets = np.array([[1.0,1.0],
                                   [1.0,1.0],
+                                  [1.0,0.0],
+                                  [1.0,0.0],
                                   [1.0,0.0]])
+        self.time_step = 0
 
         self.matcher = GurobiMatcher(feasible_sets)
 
     def reset(self):
         self.state = np.zeros(self.state_dim, dtype=np.float32)
+        self.time_step = 0
 
         return self.state
 
@@ -89,23 +93,22 @@ class AdversarialEnv(DynamicSetPackingBinaryEnv):
 
     def _run_match(self, match):
         total_match = self.matcher.valid_sets @ match
-        match_cardinality = np.sum(total_match * np.array([1.0,1.0,50.0]))
+        match_cardinality = np.sum(total_match)
         self.state = self.state - (total_match.astype('float32'))
         return match_cardinality
 
     def _arrive_and_depart(self):
-        arrivals = np.zeros(3)
-        if np.random.rand() > 0.5:
-            arrivals[0] += 1
-        if np.random.rand() > 0.7:
-            arrivals[1] += 1
-        if np.random.rand() > 0.9:
-            arrivals[2] += 1
-        if self.state[2] > 0:
-            if np.random.rand() > 0.1:
-                self.state[2] = 0
+        if self.time_step == 0:
+            self.state = np.array([1.0,1.0,0.0,0.0,0.0])
+            self.time_step = 1
+        elif self.time_step == 1:
+            self.state += np.array([0.0,0.0,1.0,1.0,1.0])
+            self.time_step = 2
+        elif self.time_step == 2:
+            self.state = np.zeros(5)
+            self.time_step = 0
 
-        self.state += arrivals
+        
 
 class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
     "A simple test environment that uses Gurobi to find a maximal match."

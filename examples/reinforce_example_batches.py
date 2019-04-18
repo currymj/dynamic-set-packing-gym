@@ -22,6 +22,7 @@ parser.add_argument('--render', action='store_true',
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='interval between training status logs (default: 10)')
 parser.add_argument('--ep-length', type=int, default=20, help='max length of episode')
+parser.add_argument('--batches-per-ep', type=int, default=1, help='minibatches per episode')
 args = parser.parse_args()
 
 
@@ -37,14 +38,18 @@ class Policy(nn.Module):
         self.affine2 = nn.Linear(128, 2)
         #self.affine1 = nn.Linear(input_size, 2, bias=False)
 
-        self.saved_log_probs = []
-        self.rewards = []
+        self.saved_log_probs = defaultdict(list)
+        self.rewards = defaultdict(list)
+        self.saved_states = defaultdict(list)
 
-    def save_log_prob(self, log_prob):
-        self.saved_log_probs.append(log_prob)
+    def save_log_prob(self, log_prob, batch_num):
+        self.saved_log_probs[batch_num].append(log_prob)
 
-    def save_reward(self, reward):
-        self.rewards.append(reward)
+    def save_state(self, state, batch_num):
+        self.saved_states[batch_num].append(state)
+
+    def save_reward(self, reward, batch_num):
+        self.rewards[batch_num].append(reward)
 
     def forward(self, x):
         x = self.affine1(x)
@@ -61,54 +66,77 @@ optimizer = optim.Adam(policy.parameters(), lr=1e-2)
 eps = np.finfo(np.float32).eps.item()
 
 
-def select_action(state):
+def select_action(state, batch_num):
     state = torch.from_numpy(state).float().unsqueeze(0)
+    policy.save_state(state, batch_num)
     probs = policy(state)
     m = Categorical(probs)
     action = m.sample()
     #policy.saved_log_probs.append(m.log_prob(action))
-    policy.save_log_prob(m.log_prob(action))
+    policy.save_log_prob(m.log_prob(action), batch_num)
     return action.item()
 
 
-def finish_episode():
+def finish_episode(batch_count):
     R = 0
     policy_loss = []
-    returns = []
-    for r in policy.rewards[::-1]:
-        R = r + args.gamma * R
-        returns.insert(0, R)
-    returns = torch.tensor(returns)
-    returns = (returns - returns.mean()) / (returns.std() + eps)
-    for log_prob, R in zip(policy.saved_log_probs, returns):
-        policy_loss.append(-log_prob * R)
+
+    disc_returns = {}
+    # first compute discounted returns
+    for b in range(batch_count):
+        returns = []
+        for r in policy.rewards[b][::-1]:
+            R = r + args.gamma * R
+            returns.insert(0, R)
+        returns = torch.tensor(returns)
+        disc_returns[b] = returns
+
+    # then get mean and std of all combined
+    all_rewards = torch.cat(tuple(disc_returns.values()))
+    returns_mean = all_rewards.mean()
+    returns_std = all_rewards.std()
+
+
+    # then compute policy loss
+    for b in range(batch_count):
+        ret_b = disc_returns[b]
+        ret_b = (ret_b - returns_mean) / (returns_std + eps)
+        for log_prob, R in zip(policy.saved_log_probs[b], ret_b):
+            policy_loss.append(-log_prob * R)
+
     optimizer.zero_grad()
     policy_loss = torch.cat(policy_loss).sum()
     policy_loss.backward()
     optimizer.step()
-    del policy.rewards[:]
-    del policy.saved_log_probs[:]
+    for k,v in policy.rewards.items():
+        del v[:]
+    for k, v in policy.saved_log_probs.items():
+        del v[:]
+    for k, v in policy.saved_states.items():
+        del v[:]
+
 
 
 def main():
     running_reward = 10
     for i_episode in count(1):
-        state, ep_reward = env.reset(), 0
-        action_counts = defaultdict(int)
-        for t in range(args.ep_length):  # Don't infinite loop while learning
-            action = select_action(state)
-            action_counts[action] += 1
-            state, reward, done, _ = env.step(action)
-            if args.render:
-                env.render()
-            #policy.rewards.append(reward)
-            policy.save_reward(reward)
-            ep_reward += reward
-            if done:
-                break
+        for b in range(args.batches_per_ep):
+            state, ep_reward = env.reset(), 0
+            action_counts = defaultdict(int)
+            for t in range(args.ep_length):  # Don't infinite loop while learning
+                action = select_action(state, b)
+                action_counts[action] += 1
+                state, reward, done, _ = env.step(action)
+                if args.render:
+                    env.render()
+                #policy.rewards.append(reward)
+                policy.save_reward(reward, b)
+                ep_reward += reward
+                if done:
+                    break
 
         running_reward = 0.05 * ep_reward + (1 - 0.05) * running_reward
-        finish_episode()
+        finish_episode(args.batches_per_ep)
         if i_episode % args.log_interval == 0:
             print('Episode {}\tLast reward: {:.2f}\tAverage reward: {:.2f}'.format(
                   i_episode, ep_reward, running_reward))

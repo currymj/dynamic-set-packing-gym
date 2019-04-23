@@ -1,6 +1,6 @@
-# from pytorch examples repository
+# starting point was from pytorch examples repository
 import argparse
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import gym
 import numpy as np
 from itertools import count
@@ -25,7 +25,7 @@ parser.add_argument('--ep-length', type=int, default=20, help='max length of epi
 parser.add_argument('--batches-per-ep', type=int, default=1, help='minibatches per episode')
 args = parser.parse_args()
 
-
+SavedAction = namedtuple('SavedAction', ['log_prob', 'value'])
 env = gym.make('DynamicSetPacking-adversarial-v0')
 torch.manual_seed(args.seed)
 

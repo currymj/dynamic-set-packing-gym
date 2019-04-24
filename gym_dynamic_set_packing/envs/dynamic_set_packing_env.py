@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 import numpy as np
 import random
-from ..matchers import GurobiMatcher, GurobiWeightedMatcher
+from ..matchers import PyomoMatcher, GurobiWeightedMatcher
 import os
 import csv
 
@@ -30,7 +30,7 @@ class DynamicSetPackingTypeWeight(gym.Env):
         assert self.action_space.contains(action)
 
         reward = 0.0
-        
+
         chosen_match = self._perform_match(self.state, action)
         reward = self._run_match(chosen_match)
 
@@ -179,7 +179,7 @@ class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
         super(GurobiBinaryEnv, self).__init__(16) # has to be hard coded :(
         filename = os.path.join(os.path.dirname(__file__), 'bloodTypeVectors.csv')
         feasible_sets = np.genfromtxt(filename,skip_header=1, delimiter=',').transpose()
-        self.matcher = GurobiMatcher(feasible_sets)
+        self.matcher = PyomoMatcher(feasible_sets)
 
     ## required overrides
     def reset(self):

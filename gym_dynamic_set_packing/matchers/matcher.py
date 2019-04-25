@@ -55,7 +55,7 @@ def mat_to_indexed_dict(mat, start_ind=1):
 
 
 class PyomoMatcher(BinaryMatcher):
-    def __init__(self, valid_sets, solver_name='glpk'):
+    def __init__(self, valid_sets, solver_name='cbc'):
         super(PyomoMatcher, self).__init__(valid_sets)
         self.n_types = self.valid_sets.shape[0]
         self.n_sets = self.valid_sets.shape[1]
@@ -85,7 +85,7 @@ class PyomoMatcher(BinaryMatcher):
     def match(self, state):
         for row in range(len(state)):
             self.instance.pool[row+1] = state[row]
-        results = self.opt.solve(self.instance, tee=True)
+        results = self.opt.solve(self.instance, tee=False)
         solns = [pyo.value(self.instance.x[i])
                  for i in range(1, self.n_sets+1)]
 

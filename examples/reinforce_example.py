@@ -22,10 +22,11 @@ parser.add_argument('--render', action='store_true',
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='interval between training status logs (default: 10)')
 parser.add_argument('--ep-length', type=int, default=20, help='max length of episode')
+parser.add_argument('--env-name', type=str, default='DynamicSetPacking-adversarial-v0',help='environment name')
 args = parser.parse_args()
 
 
-env = gym.make('DynamicSetPacking-adversarial-v0')
+env = gym.make(args.env_name)
 torch.manual_seed(args.seed)
 
 
@@ -105,9 +106,9 @@ def main():
             print('Episode {}\tLast reward: {:.2f}\tAverage reward: {:.2f}'.format(
                   i_episode, ep_reward, running_reward))
             print('0: {}, 1: {}'.format(action_counts[0], action_counts[1]))
-            print('match probs on [1.0,1.0,1.0,1.0,1.0]: {}'.format(policy(torch.Tensor([[1.0,1.0,1.0,1.0,1.0]]))))
-            print('match probs on [1.0,1.0,0.0,0.0,0.0]: {}'.format(policy(torch.Tensor([[1.0,1.0,0.0,0.0,0.0]]))))
-            print('match probs on [0.0,0.0,0.0,0.0,0.0]: {}'.format(policy(torch.Tensor([[0.0,0.0,0.0,0.0,0.0]]))))
+            #print('match probs on [1.0,1.0,1.0,1.0,1.0]: {}'.format(policy(torch.Tensor([[1.0,1.0,1.0,1.0,1.0]]))))
+            #print('match probs on [1.0,1.0,0.0,0.0,0.0]: {}'.format(policy(torch.Tensor([[1.0,1.0,0.0,0.0,0.0]]))))
+            #print('match probs on [0.0,0.0,0.0,0.0,0.0]: {}'.format(policy(torch.Tensor([[0.0,0.0,0.0,0.0,0.0]]))))
 
 
 if __name__ == '__main__':

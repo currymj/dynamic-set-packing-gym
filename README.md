@@ -57,4 +57,4 @@ Actual agents and training loops are defined separately inside the examples
 directory. The only reason for this is to avoid having PyTorch, TensorFlow, or
 other heavy libraries as dependencies of the environment itself.
 
-For the currently working example, look at `policy_gradient_pytorch.ipynb`. 
+For the currently working example, look at `reinforce_example.py`.

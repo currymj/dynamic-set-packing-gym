@@ -182,7 +182,7 @@ class AdversarialEnv(DynamicSetPackingBinaryEnv):
                                   [1.0,0.0]])
         self.time_step = 0
 
-        self.matcher = GurobiMatcher(feasible_sets)
+        self.matcher = PyomoMatcher(feasible_sets)
 
     def reset(self):
         self.state = np.zeros(self.state_dim, dtype=np.float32)

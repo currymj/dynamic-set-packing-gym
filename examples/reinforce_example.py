@@ -118,6 +118,7 @@ def main():
     plt.plot(ep_rewards)
     plt.plot(mean_rewards)
     plt.savefig(args.plot_name)
+    torch.save(policy.state_dict(), 'model.pth')
 
 
 if __name__ == '__main__':

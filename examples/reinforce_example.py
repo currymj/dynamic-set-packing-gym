@@ -5,6 +5,7 @@ import gym
 import numpy as np
 from itertools import count
 import gym_dynamic_set_packing
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,11 +18,13 @@ parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
                     help='discount factor (default: 0.99)')
 parser.add_argument('--seed', type=int, default=543, metavar='N',
                     help='random seed (default: 543)')
+parser.add_argument('--plot-name', type=str, default='rewards_plot', help='name to save rewards plot file')
 parser.add_argument('--render', action='store_true',
                     help='render the environment')
 parser.add_argument('--log-interval', type=int, default=10, metavar='N',
                     help='interval between training status logs (default: 10)')
 parser.add_argument('--ep-length', type=int, default=20, help='max length of episode')
+parser.add_argument('--num-episodes', type=int, default=1000, help='number of episodes')
 parser.add_argument('--env-name', type=str, default='DynamicSetPacking-adversarial-v0',help='environment name')
 args = parser.parse_args()
 
@@ -86,12 +89,12 @@ def finish_episode():
 
 def main():
     running_reward = 10
+    mean_rewards = []
+    ep_rewards = []
     for i_episode in count(1):
         state, ep_reward = env.reset(), 0
-        action_counts = defaultdict(int)
         for t in range(args.ep_length):  # Don't infinite loop while learning
             action = select_action(state)
-            action_counts[action] += 1
             state, reward, done, _ = env.step(action)
             if args.render:
                 env.render()
@@ -101,14 +104,20 @@ def main():
                 break
 
         running_reward = 0.05 * ep_reward + (1 - 0.05) * running_reward
+        mean_rewards.append(running_reward)
+        ep_rewards.append(ep_reward)
         finish_episode()
         if i_episode % args.log_interval == 0:
             print('Episode {}\tLast reward: {:.2f}\tAverage reward: {:.2f}'.format(
                   i_episode, ep_reward, running_reward))
-            print('0: {}, 1: {}'.format(action_counts[0], action_counts[1]))
             print('match probs on [1.0,1.0,1.0,1.0,1.0]: {}'.format(policy(torch.Tensor([[1.0,1.0,1.0,1.0,1.0]]))))
             print('match probs on [1.0,1.0,0.0,0.0,0.0]: {}'.format(policy(torch.Tensor([[1.0,1.0,0.0,0.0,0.0]]))))
             print('match probs on [0.0,0.0,0.0,0.0,0.0]: {}'.format(policy(torch.Tensor([[0.0,0.0,0.0,0.0,0.0]]))))
+        if i_episode > args.num_episodes:
+            break
+    plt.plot(ep_rewards)
+    plt.plot(mean_rewards)
+    plt.savefig(args.plot_name)
 
 
 if __name__ == '__main__':

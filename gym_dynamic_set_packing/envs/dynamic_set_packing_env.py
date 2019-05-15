@@ -87,6 +87,9 @@ class GurobiWeightedEnv(DynamicSetPackingTypeWeight):
         #self.state[0] = 8
         #self.state[4] = 8
         return self.state
+    def reset_const(self, const):
+        self.state = const * np.ones(self.state_dim, dtype=np.float32)
+        return self.state
 
     def _perform_match(self, state, action):
         return self.matcher.match(state, action)

@@ -23,7 +23,7 @@ class DynamicSetPackingTypeWeight(gym.Env):
         self.seed()
 
         self.state = None
-        self.reset()
+
 
 
     def step(self, action):
@@ -81,11 +81,16 @@ class GurobiWeightedEnv(DynamicSetPackingTypeWeight):
         feasible_sets = np.genfromtxt(filename,skip_header=1, delimiter=',').transpose()
         self.matcher = GurobiWeightedMatcher(feasible_sets)
 
+        self.arrival_daily_mean = np.array([
+            32.3250498, 21.26307068, 9.998228937, 2.540044521, 14.54586926, 9.568116614, 4.499078324, 1.142988355, 4.531473682, 2.980754732, 1.401597571, 0.356075086, 0.548292189, 0.360660715, 0.169588318, 0.043083818])
+
+        self.departure_daily_mean = np.array([14.39983629, 7.932098763, 4.343646604, 0.73473771, 6.479746736, 3.569345515, 1.954586798, 0.330622806, 2.01863507, 1.111957971, 0.608912295, 0.102998901, 0.24424766, 0.134542957, 0.073676221, 0.0124625])
     ## required overrides
     def reset(self):
         self.state = np.zeros(self.state_dim, dtype=np.float32)
         #self.state[0] = 8
         #self.state[4] = 8
+        self._arrive_and_depart()
         return self.state
     def reset_const(self, const):
         self.state = const * np.ones(self.state_dim, dtype=np.float32)
@@ -105,11 +110,10 @@ class GurobiWeightedEnv(DynamicSetPackingTypeWeight):
     def _arrive_and_depart(self):
         # arrive
         for i in range(len(self.state)):
-            if np.random.rand() > 0.5:
-                self.state[i] += 1
-            if np.random.rand() > 0.3:
-                if self.state[i] > 0:
-                    self.state[i] -= 1
+            self.state[i] -= 1.0 * np.random.poisson(lam=self.departure_daily_mean[i])
+            self.state[i] += 1.0 * np.random.poisson(lam=self.arrival_daily_mean[i])
+            if self.state[i] < 0:
+                self.state[i] = 0.0
 
 class DynamicSetPackingBinaryEnv(gym.Env):
 

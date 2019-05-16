@@ -58,7 +58,7 @@ def mat_to_indexed_dict(mat, start_ind=1):
 
 
 class PyomoMatcher(BinaryMatcher):
-    def __init__(self, valid_sets, solver_name='cplex_direct'):
+    def __init__(self, valid_sets, solver_name='glpk'):
         super(PyomoMatcher, self).__init__(valid_sets)
         self.n_types = self.valid_sets.shape[0]
         self.n_sets = self.valid_sets.shape[1]

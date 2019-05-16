@@ -1,5 +1,6 @@
 import pyomo.environ as pyo
 from pyomo.opt import SolverFactory
+import gurobipy as gr
 import numpy as np
 
 # note to self: matchers take in a set of counts
@@ -31,6 +32,9 @@ class WeightedMatcher:
 def _obj_expr(model):
     return sum(model.a[i, j] * model.x[j] for j in model.J for i in model.I)
 
+
+def _obj_expr_weights(model):
+    return sum(model.a[i, j] * model.weights[i] * model.x[j] for j in model.J for i in model.I)
 
 def _ax_constraint_rule(model, i):
     # return the expression for the constraint for i
@@ -91,6 +95,46 @@ class PyomoMatcher(BinaryMatcher):
 
         return solns
 
+class PyomoWeightedMatcher(WeightedMatcher):
+    def __init__(self, valid_sets, solver_name='cplex_direct'):
+        super(PyomoWeightedMatcher, self).__init__(valid_sets)
+        self.n_types = self.valid_sets.shape[0]
+        self.n_sets = self.valid_sets.shape[1]
+
+        # create abstract model
+        self.abstract = pyo.AbstractModel()
+        self.abstract.n_types = pyo.Param(within=pyo.NonNegativeIntegers)
+        self.abstract.n_sets = pyo.Param(within=pyo.NonNegativeIntegers)
+        self.abstract.I = pyo.RangeSet(1, self.abstract.n_types)
+        self.abstract.J = pyo.RangeSet(1, self.abstract.n_sets)
+        self.abstract.a = pyo.Param(self.abstract.I, self.abstract.J)
+        self.abstract.pool = pyo.Param(self.abstract.I, mutable=True)
+        self.abstract.weights = pyo.Param(self.abstract.I, mutable=True)
+        self.abstract.x = pyo.Var(
+            self.abstract.J, domain=pyo.NonNegativeIntegers)
+        self.abstract.OBJ = pyo.Objective(rule=_obj_expr_weights, sense=pyo.maximize)
+        self.abstract.AxbConstraint = pyo.Constraint(
+            self.abstract.I, rule=_ax_constraint_rule)
+
+        data_dict = {None: {'n_types': {None: self.n_types},
+                     'n_sets': {None: self.n_sets},
+                     'pool': arr_to_indexed_dict([10 for x in range(self.n_types)]),
+                     'weights': arr_to_indexed_dict([1 for y in range(self.n_types)]),
+                     'a': mat_to_indexed_dict(valid_sets)}}
+
+        self.opt = pyo.SolverFactory(solver_name)
+        self.instance = self.abstract.create_instance(data_dict)
+
+    def match(self, state, action):
+        for row in range(len(state)):
+            self.instance.pool[row+1] = state[row]
+            self.instance.weights[row+1] = action[row]
+        #self.instance.OBJ = pyo.Objective(expr=_obj_expr_weights_fn(action)(self.instance), sense=pyo.maximize)
+        results = self.opt.solve(self.instance, tee=False)
+        solns = [pyo.value(self.instance.x[i])
+                 for i in range(1, self.n_sets+1)]
+
+        return solns
 
 class GurobiMatcher(BinaryMatcher):
     def __init__(self, valid_sets, show_output=False):

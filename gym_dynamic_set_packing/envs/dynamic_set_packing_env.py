@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 import numpy as np
 import random
-from ..matchers import PyomoMatcher, GurobiWeightedMatcher
+from ..matchers import PyomoMatcher, GurobiWeightedMatcher, PyomoWeightedMatcher
 import os
 import csv
 
@@ -79,7 +79,8 @@ class GurobiWeightedEnv(DynamicSetPackingTypeWeight):
         super(GurobiWeightedEnv, self).__init__(16) # has to be hard coded :(
         filename = os.path.join(os.path.dirname(__file__), 'bloodTypeVectors.csv')
         feasible_sets = np.genfromtxt(filename,skip_header=1, delimiter=',').transpose()
-        self.matcher = GurobiWeightedMatcher(feasible_sets)
+        #self.matcher = GurobiWeightedMatcher(feasible_sets)
+        self.matcher = PyomoWeightedMatcher(feasible_sets)
 
         self.arrival_daily_mean = np.array([
             32.3250498, 21.26307068, 9.998228937, 2.540044521, 14.54586926, 9.568116614, 4.499078324, 1.142988355, 4.531473682, 2.980754732, 1.401597571, 0.356075086, 0.548292189, 0.360660715, 0.169588318, 0.043083818])

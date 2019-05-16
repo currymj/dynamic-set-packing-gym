@@ -1,1 +1,1 @@
-from .matcher import GurobiMatcher, GurobiWeightedMatcher
+from .matcher import PyomoMatcher, GurobiWeightedMatcher

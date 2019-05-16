@@ -2,7 +2,7 @@ import gym
 from gym import spaces
 import numpy as np
 import random
-from ..matchers import GurobiMatcher, GurobiWeightedMatcher
+from ..matchers import PyomoMatcher, GurobiWeightedMatcher
 import os
 import csv
 
@@ -30,7 +30,7 @@ class DynamicSetPackingTypeWeight(gym.Env):
         assert self.action_space.contains(action)
 
         reward = 0.0
-        
+
         chosen_match = self._perform_match(self.state, action)
         reward = self._run_match(chosen_match)
 
@@ -189,7 +189,7 @@ class AdversarialEnv(DynamicSetPackingBinaryEnv):
                                   [1.0,0.0]])
         self.time_step = 0
 
-        self.matcher = GurobiMatcher(feasible_sets)
+        self.matcher = PyomoMatcher(feasible_sets)
 
     def reset(self):
         self.state = np.zeros(self.state_dim, dtype=np.float32)
@@ -217,7 +217,7 @@ class AdversarialEnv(DynamicSetPackingBinaryEnv):
             self.state = np.zeros(5)
             self.time_step = 0
 
-        
+
 
 class GurobiBinaryEnv(DynamicSetPackingBinaryEnv):
     "A simple test environment that uses Gurobi to find a maximal match."

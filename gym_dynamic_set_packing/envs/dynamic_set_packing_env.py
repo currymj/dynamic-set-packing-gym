@@ -179,6 +179,48 @@ class DynamicSetPackingBinaryEnv(gym.Env):
         random.seed(1)
         np.random.seed(1)
 
+class AdversarialWeightedEnv(DynamicSetPackingTypeWeight):
+    def __init__(self):
+        super(AdversarialWeightedEnv, self).__init__(5)
+        feasible_sets = np.array([[1.0,1.0],
+                                  [1.0,1.0],
+                                  [1.0,0.0],
+                                  [1.0,0.0],
+                                  [1.0,0.0]])
+        self.time_step = 0
+
+        self.matcher = PyomoWeightedMatcher(feasible_sets)
+
+    def reset(self):
+        self.state = np.zeros(self.state_dim, dtype=np.float32)
+        self.time_step = 0
+
+        return self.state
+
+    def reset_const(self, const):
+        self.state = const * np.ones(self.state_dim, dtype=np.float32)
+        return self.state
+
+    def _perform_match(self, state, action):
+        return self.matcher.match(state, action)
+
+    def _run_match(self, match):
+        total_match = self.matcher.valid_sets @ match
+        match_cardinality = np.sum(total_match)
+        self.state = self.state - (total_match.astype('float32'))
+        return match_cardinality
+
+    def _arrive_and_depart(self):
+        if self.time_step == 0:
+            self.state = np.array([1.0,1.0,0.0,0.0,0.0])
+            self.time_step = 1
+        elif self.time_step == 1:
+            self.state += np.array([0.0,0.0,1.0,1.0,1.0])
+            self.time_step = 2
+        elif self.time_step == 2:
+            self.state = np.zeros(5)
+            self.time_step = 0
+
 class AdversarialEnv(DynamicSetPackingBinaryEnv):
     def __init__(self):
         super(AdversarialEnv, self).__init__(5)

@@ -1,1 +1,1 @@
-from .dynamic_set_packing_env import DynamicSetPackingBinaryEnv, SillyTestEnv, GurobiBinaryEnv, GurobiWeightedEnv, AdversarialEnv
+from .dynamic_set_packing_env import DynamicSetPackingBinaryEnv, SillyTestEnv, GurobiBinaryEnv, GurobiWeightedEnv, AdversarialEnv, AdversarialWeightedEnv
